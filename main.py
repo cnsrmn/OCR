@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
 import pytesseract
+from pytesseract import TesseractError
 import hashlib
 
 
@@ -20,7 +21,7 @@ def display_image_on_canvas(image):
     canvas.image = ImageTk.PhotoImage(image)
     canvas.create_image(0, 0, anchor='nw', image=canvas.image)
     extract_button.config(state='normal')  # Enable the button
-    copy_button.config(state='normal')  # Enable the button
+    #copy_button.config(state='normal')  # Enable the button
     clear_button.config(state='normal')  # Enable the button
 def display_message_on_canvas(message):
     """ Display a message on the canvas. """
@@ -52,10 +53,6 @@ def check_clipboard():
 
 
 
-
-
-
-
 def extract_text_from_clipboard():
     try:
         image = ImageGrab.grabclipboard()
@@ -63,11 +60,14 @@ def extract_text_from_clipboard():
             extracted_text = pytesseract.image_to_string(image)
             text_box.delete('1.0', tk.END)
             text_box.insert(tk.END, extracted_text)
+            copy_button.config(state='normal')  # Enable the button since there possibly is now text to copy.
         else:
-            #messagebox.showinfo("No Image", "Clipboard does not contain an image.")
+            messagebox.showinfo("No Image", "Clipboard does not contain an image.")
             extract_button.config(state='disabled')  # Disable the button
+    except TesseractError as e:
+        messagebox.showerror("OCR Error", "Failed to extract text: " + str(e))
     except Exception as e:
-        messagebox.showerror("Error", str(e))
+        messagebox.showerror("Error", "An unexpected error occurred: " + str(e))
 
 
 def clear_all():
@@ -76,6 +76,8 @@ def clear_all():
     root.clipboard_clear()
     display_message_on_canvas("No image in clipboard. Please copy an image with text to clipboard.")
     extract_button.config(state='disabled')  # Disable the button
+    copy_button.config(state='disabled')  # Disable the button
+    clear_button.config(state='disabled')  # Disable the button
     current_image_hash = None  # Reset the hash
 def copy_text_to_clipboard():
     global current_image_hash
