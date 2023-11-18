@@ -8,12 +8,6 @@ import hashlib
 # Initialize a global variable to store the hash of the current image on canvas
 current_image_hash = None
 
-
-# Function to update the OCR language
-def set_ocr_language(lang):
-    global ocr_language
-    ocr_language.set(lang)
-
 def get_image_hash(image):
     """ Compute the hash of an image. """
     image_bytes = image.tobytes()
