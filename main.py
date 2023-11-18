@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from PIL import ImageGrab, Image, ImageTk
+from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
 import pytesseract
 import hashlib
 
@@ -20,6 +20,8 @@ def display_image_on_canvas(image):
     canvas.image = ImageTk.PhotoImage(image)
     canvas.create_image(0, 0, anchor='nw', image=canvas.image)
     extract_button.config(state='normal')  # Enable the button
+    copy_button.config(state='normal')  # Enable the button
+    clear_button.config(state='normal')  # Enable the button
 def display_message_on_canvas(message):
     """ Display a message on the canvas. """
     canvas.delete("all")  # Clear the canvas first
@@ -39,11 +41,19 @@ def check_clipboard():
         else:
             # Display a message if the clipboard does not contain an image
             display_message_on_canvas("No image in clipboard. Please copy an image with text to clipboard.")
+    except UnidentifiedImageError:
+        messagebox.showerror("Error", "Unsupported image format.")
     except Exception as e:
-        messagebox.showerror("Error checking clipboard.", str(e))
+        messagebox.showerror("Error", "An unexpected error occurred: " + str(e))
+
     finally:
         # Check the clipboard again after 1000 milliseconds (1 second)
-        root.after(1000, check_clipboard)
+        root.after(1500, check_clipboard)
+
+
+
+
+
 
 
 def extract_text_from_clipboard():
@@ -71,6 +81,7 @@ def copy_text_to_clipboard():
     global current_image_hash
     root.clipboard_clear()
     root.clipboard_append(text_box.get("1.0", tk.END))
+    display_message_on_canvas("Clipboard populated with text.")
     current_image_hash = None  # Reset the hash
 
 root = tk.Tk()
@@ -89,10 +100,10 @@ button_frame.pack(fill='x', expand=False)
 extract_button = tk.Button(button_frame, text="Extract Text from Clipboard", command=extract_text_from_clipboard, state='disabled')
 extract_button.pack(side='left', padx=5, pady=5)
 
-clear_button = tk.Button(button_frame, text="Clear All", command=clear_all)
+clear_button = tk.Button(button_frame, text="Clear All", command=clear_all, state='disabled')
 clear_button.pack(side='left', padx=5, pady=5)
 
-copy_button = tk.Button(button_frame, text="Copy Text", command=copy_text_to_clipboard)
+copy_button = tk.Button(button_frame, text="Copy Text", command=copy_text_to_clipboard, state='disabled')
 copy_button.pack(side='left', padx=5, pady=5)
 
 
