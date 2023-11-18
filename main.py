@@ -61,14 +61,17 @@ def extract_text_from_clipboard():
 
 
 def clear_all():
+    global current_image_hash
     text_box.delete('1.0', tk.END)
     root.clipboard_clear()
     display_message_on_canvas("No image in clipboard. Please copy an image with text to clipboard.")
     extract_button.config(state='disabled')  # Disable the button
-
+    current_image_hash = None  # Reset the hash
 def copy_text_to_clipboard():
+    global current_image_hash
     root.clipboard_clear()
     root.clipboard_append(text_box.get("1.0", tk.END))
+    current_image_hash = None  # Reset the hash
 
 root = tk.Tk()
 root.title("OCR from Clipboard")
