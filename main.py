@@ -9,6 +9,11 @@ import hashlib
 # Initialize a global variable to store the hash of the current image on canvas
 current_image_hash = None
 
+
+def start_application():
+    # Delay the initial clipboard check to allow the canvas to initialize
+    root.after(500, check_clipboard)
+
 def get_image_hash(image):
     """ Compute the hash of an image. """
     image_bytes = image.tobytes()
@@ -30,7 +35,6 @@ def display_message_on_canvas(message):
     canvas.create_text(canvas.winfo_width()/2, canvas.winfo_height()/2,
                        text=formatted_message, fill="black",
                        font=('Helvetica', 16, 'bold'), anchor='center')
-
 def check_clipboard():
     global current_image_hash
     try:
@@ -50,9 +54,6 @@ def check_clipboard():
     finally:
         # Check the clipboard again after 1000 milliseconds (1 second)
         root.after(1500, check_clipboard)
-
-
-
 def extract_text_from_clipboard():
     try:
         image = ImageGrab.grabclipboard()
@@ -68,8 +69,6 @@ def extract_text_from_clipboard():
         messagebox.showerror("OCR Error", "Failed to extract text: " + str(e))
     except Exception as e:
         messagebox.showerror("Error", "An unexpected error occurred: " + str(e))
-
-
 def clear_all():
     global current_image_hash
     text_box.delete('1.0', tk.END)
@@ -87,10 +86,10 @@ def copy_text_to_clipboard():
     current_image_hash = None  # Reset the hash
 
 root = tk.Tk()
-root.title("OCR from Clipboard")
+root.title("Clipboard Text Extractor")
 root.geometry("800x600")  # Set initial size of the window
 
-canvas = tk.Canvas(root, height=300)
+canvas = tk.Canvas(root, height=300, width=800)
 canvas.pack(padx=10, pady=10, fill='both', expand=True)
 
 text_box = tk.Text(root, height=10, width=50)
@@ -109,8 +108,7 @@ copy_button = tk.Button(button_frame, text="Copy Text", command=copy_text_to_cli
 copy_button.pack(side='left', padx=5, pady=5)
 
 
+start_application()
 
-# Start the periodic clipboard check
-check_clipboard()
 
 root.mainloop()
