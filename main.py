@@ -1,14 +1,16 @@
+#system tray first version
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, Button
 from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
 import pytesseract
 from pytesseract import TesseractError
 import hashlib
+import pystray
+from PIL import Image as PILImage
+import threading
 
 # Initialize a global variable to store the hash of the current image on canvas
 current_image_hash = None
-
-
 
 def toggle_button_states():
     if auto_extract_var.get():
@@ -105,9 +107,42 @@ def copy_text_to_clipboard():
     display_message_on_canvas("Clipboard populated with text.")
     current_image_hash = None  # Reset the hash
 
+
+def create_tray_icon(image_path):
+    """Create a system tray icon."""
+    icon = pystray.Icon("clipboard_text_extractor")
+    icon.icon = PILImage.open(image_path)
+    icon.title = "Clipboard Text Extractor"
+    icon.menu = pystray.Menu(
+        pystray.MenuItem("Show", lambda: show_window(icon)),
+        pystray.MenuItem("Quit", lambda: quit_application(icon))
+    )
+    return icon
+
+def show_window(icon):
+    """Show the application window and stop the system tray icon."""
+    icon.stop()
+    root.after(0, root.deiconify)  # Show the window
+
+def quit_application(icon):
+    """Stop the system tray icon and quit the application."""
+    icon.stop()
+    root.destroy()
+
+def hide_window_to_tray():
+    """Hide the window and show the system tray icon in a separate thread."""
+    root.withdraw()  # Hide the window
+    icon = create_tray_icon(r"C:\Users\cs439\PycharmProjects\ocr\system_tray_icon.png")
+
+    # Run the pystray icon in a separate thread
+    icon_thread = threading.Thread(target=icon.run)
+    icon_thread.daemon = True  # Mark the thread as a daemon thread
+    icon_thread.start()
+
 root = tk.Tk()
 root.title("Clipboard Text Extractor")
-root.geometry("800x600")  # Set initial size of the window
+root.geometry("800x600")
+root.protocol("WM_DELETE_WINDOW", hide_window_to_tray)  # Minimize to tray on close
 
 canvas = tk.Canvas(root, height=300, width=800)
 canvas.pack(padx=10, pady=10, fill='both', expand=True)
@@ -118,7 +153,7 @@ text_box.pack(padx=10, pady=10, fill='both', expand=True)
 button_frame = tk.Frame(root)
 button_frame.pack(fill='x', expand=False)
 
-extract_button = tk.Button(button_frame, text="Extract Text from Clipboard", command=extract_text_from_clipboard, state='disabled')
+extract_button: Button = tk.Button(button_frame, text="Extract Text from Clipboard", command=extract_text_from_clipboard, state='disabled')
 extract_button.pack(side='left', padx=10, pady=10)
 
 clear_button = tk.Button(button_frame, text="Clear All", command=clear_all, state='disabled')
@@ -134,8 +169,6 @@ auto_extract_checkbox.pack(side='left', padx=10, pady=10)
 
 toggle_button_states()  # Set the initial state of buttons
 
-
 start_application()
-
 
 root.mainloop()
