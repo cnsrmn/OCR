@@ -5,9 +5,23 @@ import pytesseract
 from pytesseract import TesseractError
 import hashlib
 
-
 # Initialize a global variable to store the hash of the current image on canvas
 current_image_hash = None
+
+
+
+def toggle_button_states():
+    if auto_extract_var.get():
+        # If the checkbox is checked, disable the buttons
+        extract_button.config(state='disabled')
+        copy_button.config(state='disabled')
+        clear_button.config(state='disabled')
+    else:
+        # If the checkbox is unchecked, enable the buttons
+        extract_button.config(state='normal')
+        copy_button.config(state='normal')
+        clear_button.config(state='normal')
+
 
 
 def start_application():
@@ -15,7 +29,6 @@ def start_application():
     root.after(500, check_clipboard)
 
 def get_image_hash(image):
-    """ Compute the hash of an image. """
     image_bytes = image.tobytes()
     return hashlib.md5(image_bytes).hexdigest()
 
@@ -28,13 +41,15 @@ def display_image_on_canvas(image):
     extract_button.config(state='normal')  # Enable the button
     #copy_button.config(state='normal')  # Enable the button
     clear_button.config(state='normal')  # Enable the button
+
+
 def display_message_on_canvas(message):
-    """ Display a message on the canvas. """
     canvas.delete("all")  # Clear the canvas first
     formatted_message = message.replace(". ", ".\n")
     canvas.create_text(canvas.winfo_width()/2, canvas.winfo_height()/2,
                        text=formatted_message, fill="black",
                        font=('Helvetica', 16, 'bold'), anchor='center')
+
 def check_clipboard():
     global current_image_hash
     try:
@@ -43,17 +58,18 @@ def check_clipboard():
             clipboard_image_hash = get_image_hash(image)
             if clipboard_image_hash != current_image_hash:
                 display_image_on_canvas(image)
+                if auto_extract_var.get():  # Check if the AutoExtractCopyText is enabled
+                    toggle_button_states()
+                    extract_text_from_clipboard()  # Automatically extract text
         else:
-            # Display a message if the clipboard does not contain an image
             display_message_on_canvas("No image in clipboard. Please copy an image with text to clipboard.")
     except UnidentifiedImageError:
         messagebox.showerror("Error", "Unsupported image format.")
     except Exception as e:
         messagebox.showerror("Error", "An unexpected error occurred: " + str(e))
-
     finally:
-        # Check the clipboard again after 1000 milliseconds (1 second)
         root.after(1500, check_clipboard)
+
 def extract_text_from_clipboard():
     try:
         image = ImageGrab.grabclipboard()
@@ -62,6 +78,9 @@ def extract_text_from_clipboard():
             text_box.delete('1.0', tk.END)
             text_box.insert(tk.END, extracted_text)
             copy_button.config(state='normal')  # Enable the button since there possibly is now text to copy.
+            if auto_extract_var.get():  # Check if the AutoExtractCopyText is enabled
+                toggle_button_states()
+                copy_text_to_clipboard()  # Automatically copy text if checkbox is selected
         else:
             messagebox.showinfo("No Image", "Clipboard does not contain an image.")
             extract_button.config(state='disabled')  # Disable the button
@@ -69,6 +88,7 @@ def extract_text_from_clipboard():
         messagebox.showerror("OCR Error", "Failed to extract text: " + str(e))
     except Exception as e:
         messagebox.showerror("Error", "An unexpected error occurred: " + str(e))
+
 def clear_all():
     global current_image_hash
     text_box.delete('1.0', tk.END)
@@ -106,6 +126,17 @@ clear_button.pack(side='left', padx=5, pady=5)
 
 copy_button = tk.Button(button_frame, text="Copy Text", command=copy_text_to_clipboard, state='disabled')
 copy_button.pack(side='left', padx=5, pady=5)
+
+
+
+
+auto_extract_var = tk.BooleanVar()  # Variable to track the checkbox state
+#auto_extract_checkbox = tk.Checkbutton(root, text="Auto Extract and Copy Text", variable=auto_extract_var)
+auto_extract_checkbox = tk.Checkbutton(root, text="Auto Extract and Copy Text", variable=auto_extract_var, command=toggle_button_states)
+auto_extract_checkbox.pack()
+
+
+toggle_button_states()  # Set the initial state of buttons
 
 
 start_application()
