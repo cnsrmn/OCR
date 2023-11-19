@@ -119,21 +119,17 @@ button_frame = tk.Frame(root)
 button_frame.pack(fill='x', expand=False)
 
 extract_button = tk.Button(button_frame, text="Extract Text from Clipboard", command=extract_text_from_clipboard, state='disabled')
-extract_button.pack(side='left', padx=5, pady=5)
+extract_button.pack(side='left', padx=10, pady=10)
 
 clear_button = tk.Button(button_frame, text="Clear All", command=clear_all, state='disabled')
-clear_button.pack(side='left', padx=5, pady=5)
+clear_button.pack(side='left', padx=10, pady=10)
 
 copy_button = tk.Button(button_frame, text="Copy Text", command=copy_text_to_clipboard, state='disabled')
-copy_button.pack(side='left', padx=5, pady=5)
-
-
-
+copy_button.pack(side='left', padx=10, pady=10)
 
 auto_extract_var = tk.BooleanVar()  # Variable to track the checkbox state
-#auto_extract_checkbox = tk.Checkbutton(root, text="Auto Extract and Copy Text", variable=auto_extract_var)
 auto_extract_checkbox = tk.Checkbutton(root, text="Auto Extract and Copy Text", variable=auto_extract_var, command=toggle_button_states)
-auto_extract_checkbox.pack()
+auto_extract_checkbox.pack(side='left', padx=10, pady=10)
 
 
 toggle_button_states()  # Set the initial state of buttons
