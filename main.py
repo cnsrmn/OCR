@@ -57,22 +57,37 @@ def show_about():
 # Initialize a global variable to store the hash of the current image on canvas
 current_image_hash = None
 
+
 def show_help():
     help_message = """
     Clipboard Text Extractor - Help
 
+    Overview:
+    This application monitors your clipboard for images. When an image is found, it extracts any text within the image. You can either manually extract and copy the text or enable the 'Auto Extract and Copy Text' feature for automatic processing.
+
     How to Use with Windows Snip Tool:
     1. Use the Windows Snip Tool to capture an area of the screen.
-    2. The captured image will be automatically saved to the clipboard.
-    3. The Clipboard Text Extractor will detect the image and extract text from it.
+    2. The captured image will automatically be saved to the clipboard.
+    3. The application detects the image and, depending on your settings, either waits for you to extract the text manually or does it automatically.
 
-    Clipboard Functionality:
-    - The application monitors your clipboard for images.
-    - When an image is found, it extracts any text in the image.
-    - You can then use the 'Copy Text' button to copy the extracted text to the clipboard.
+    Manual Text Extraction:
+    - With 'Auto Extract and Copy Text' turned OFF:
+      - Click 'Extract Text from Clipboard' to extract text from the clipboard image.
+      - Once text is extracted, the 'Copy Text' button becomes active, allowing you to copy the text to the clipboard.
+
+    Auto Extract and Copy Text:
+    - With 'Auto Extract and Copy Text' turned ON:
+      - The application automatically extracts text from any image you copy to the clipboard.
+      - The extracted text is automatically copied to the clipboard.
+      - The 'Extract Text from Clipboard' and 'Copy Text' buttons are disabled as the process is automated.
+
+    Note:
+    - The application can only process images that contain text.
+    - Unsupported image formats or non-image clipboard content will result in an error or no action.
 
     """
     messagebox.showinfo("Help - Clipboard Text Extractor", help_message)
+
 
 image_on_canvas = False
 text_in_textbox = False
@@ -144,27 +159,35 @@ def check_clipboard():
     finally:
         root.after(1500, check_clipboard)
         toggle_button_states()
+
 def extract_text_from_clipboard():
     global text_in_textbox
     try:
         image = ImageGrab.grabclipboard()
         if isinstance(image, Image.Image):
             extracted_text = pytesseract.image_to_string(image)
-            text_box.delete('1.0', tk.END)
-            text_box.insert(tk.END, extracted_text)
-            text_in_textbox = bool(extracted_text.strip())
+            if not extracted_text.strip():  # Check if the extracted text is empty or only whitespace
+                messagebox.showinfo("No Text Found", "No text was found in the clipboard image.")
+                clear_all()  # Call clear_all after user acknowledges the message
+            else:
+                text_box.delete('1.0', tk.END)
+                text_box.insert(tk.END, extracted_text)
+                text_in_textbox = True
+                if auto_extract_var.get():
+                    copy_text_to_clipboard()
             toggle_button_states()
-            #copy_button.config(state='normal')  # Enable the button since there possibly is now text to copy.
-            if auto_extract_var.get():  # Check if the AutoExtractCopyText is enabled
-                copy_text_to_clipboard()  # Automatically copy text if checkbox is selected
-                toggle_button_states()
         else:
             messagebox.showinfo("No Image", "Clipboard does not contain an image.")
-            toggle_button_states()
+            clear_all()  # Call clear_all after user acknowledges the message
     except TesseractError as e:
         messagebox.showerror("OCR Error", "Failed to extract text: " + str(e))
+        clear_all()  # Call clear_all after user acknowledges the error message
     except Exception as e:
         messagebox.showerror("Error", "An unexpected error occurred: " + str(e))
+        clear_all()  # Call clear_all after user acknowledges the error message
+    finally:
+        toggle_button_states()
+
 
 def clear_all():
     global image_on_canvas, text_in_textbox
