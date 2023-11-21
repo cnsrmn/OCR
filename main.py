@@ -1,4 +1,3 @@
-#system tray first version
 import tkinter as tk
 from tkinter import messagebox, Button
 from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
@@ -8,16 +7,15 @@ from pytesseract import TesseractError
 import hashlib
 import pystray
 import threading
-import tkinter as tk
 from tkinter.simpledialog import Dialog
-
 
 class CustomDialog(tk.simpledialog.Dialog):
     def __init__(self, parent, title=None):
         super().__init__(parent, title)
+
     def body(self, master):
         tk.Label(master, text="Would you like to exit the program or minimize to system tray?").pack()
-        return None  # override if you need to return a widget that should have initial focus
+        return None
 
     def buttonbox(self):
         box = tk.Frame(self)
@@ -37,17 +35,16 @@ class CustomDialog(tk.simpledialog.Dialog):
 
     def ok(self, action):
         self.user_action = action
-        print(f"Action chosen: {self.user_action}")  # Debug print
-        super().ok()
+        print(f"Action chosen: {self.user_action}")
+        self.destroy()
 
     def cancel(self, event=None):
         self.user_action = "cancel"
-        super().cancel()
+        self.destroy()
 
 def on_close_request():
     dialog = CustomDialog(root)
-    root.wait_window(dialog)  # Wait for the dialog to close
-    print(f"User action from dialog: {dialog.user_action}")  # Debug print
+    print(f"User action from dialog: {dialog.user_action}")
     if dialog.user_action == "exit":
         root.destroy()
     elif dialog.user_action == "minimize":
