@@ -34,7 +34,6 @@ class CustomDialog(tk.simpledialog.Dialog):
 
     def ok(self, action):
         self.user_action = action
-        print(f"Action chosen: {self.user_action}")
         self.destroy()
 
     def cancel(self, event=None):
@@ -43,7 +42,6 @@ class CustomDialog(tk.simpledialog.Dialog):
 
 def on_close_request():
     dialog = CustomDialog(root)
-    print(f"User action from dialog: {dialog.user_action}")
     if dialog.user_action == "exit":
         root.destroy()
     elif dialog.user_action == "minimize":
